@@ -34,11 +34,13 @@ private:
     unordered_map<string, int> quantities;
     vector<string> items;
     CartManager() {}
+    CartManager(const CartManager&) = delete;  // prevent copy
+    CartManager& operator=(const CartManager&) = delete;  // prevent assign
 
 public:
-    static CartManager* getInstance() {
+    static CartManager& getInstance() {
         static CartManager instance;
-        return &instance;
+        return instance;
     }
 
     void addToCart(const string& item, int quantity) {
@@ -61,12 +63,12 @@ public:
 int main() {
     string item;
     int quantity;
-    CartManager* cartManager = CartManager::getInstance();
+    CartManager& cartManager = CartManager::getInstance();  // reference the instance rather than copy
     while (cin >> item >> quantity) {
-        cartManager->addToCart(item, quantity);
+        cartManager.addToCart(item, quantity);
     }
 
-    auto cart = cartManager->viewCart();
+    auto cart = cartManager.viewCart();
     for (auto& item : cart) {
         cout << item.first << " " << item.second << endl;
     }
