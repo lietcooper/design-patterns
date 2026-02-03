@@ -7,7 +7,7 @@
 
 
 #include <iostream>
-
+#include <memory>
 
 // component interface
 class Coffee {
@@ -38,18 +38,12 @@ public:
 // decorator interface
 class Decorator : public Coffee {
 protected:
-    Coffee* _coffee;
+    std::unique_ptr<Coffee> _coffee;  // use smart pointer in case of stack object passed in and cannot delete in destructor.
 public:
-    Decorator(Coffee* coffee) : _coffee(coffee) {}
+    Decorator(std::unique_ptr<Coffee> coffee) : _coffee(std::move(coffee)) {}
 
     void brew() const override {
         _coffee->brew();
-    }
-
-    virtual ~Decorator() {
-        if (_coffee) {
-            delete _coffee;
-        }
     }
 };
 
@@ -57,7 +51,7 @@ public:
 // concrete decorator
 class MilkDecorator : public Decorator {
 public:
-    MilkDecorator(Coffee* coffee) : Decorator(coffee) {}
+    MilkDecorator(std::unique_ptr<Coffee> coffee) : Decorator(std::move(coffee)) {}
 
     void brew() const override {
         Decorator::brew();
@@ -69,7 +63,7 @@ public:
 // concrete decorator
 class SugarDecorator : public Decorator {
 public:
-    SugarDecorator(Coffee* coffee) : Decorator(coffee) {}
+    SugarDecorator(std::unique_ptr<Coffee> coffee) : Decorator(std::move(coffee)) {}
 
     void brew() const override {
         Decorator::brew();
@@ -81,20 +75,25 @@ public:
 int main() {
     int type, add;
     while (std::cin >> type >> add) {
-        Coffee* coffee;
+        std::unique_ptr<Coffee> coffee;
         if (type == 1) {
-            coffee = new BlackCoffee();
+            coffee = std::make_unique<BlackCoffee>();
         } else {
-            coffee = new Latte();
+            coffee = std::make_unique<Latte>();
         }
 
         if (add == 1) {
-            coffee = new MilkDecorator(coffee);
+            coffee = std::make_unique<MilkDecorator>(std::move(coffee));
         } else {
-            coffee = new SugarDecorator(coffee);
+            coffee = std::make_unique<SugarDecorator>(std::move(coffee));
         }
 
+        // can nest forever because they all extends Coffee; Based on this, we can add up price and topping info as well.
+        // coffee = std::make_unique<MilkDecorator>(std::move(coffee));
+        // coffee = std::make_unique<SugarDecorator>(std::move(coffee));
+        // coffee = std::make_unique<MilkDecorator>(std::move(coffee));
+        // coffee = std::make_unique<SugarDecorator>(std::move(coffee));
+
         coffee->brew();
-        delete coffee;
     }
 }
