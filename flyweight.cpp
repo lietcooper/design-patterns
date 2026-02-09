@@ -15,18 +15,17 @@
 #include <string>
 #include <memory>
 
-
-enum ShapeType {
+enum class ShapeType {
     CIRCLE, RECTANGLE, TRIANGLE
 };
 
 std::string shapeTypeToString(ShapeType type) {
     switch (type) {
-        case CIRCLE:
+        case ShapeType::CIRCLE:
             return "CIRCLE";
-        case RECTANGLE:
+        case ShapeType::RECTANGLE:
             return "RECTANGLE";
-        case TRIANGLE:
+        case ShapeType::TRIANGLE:
             return "TRIANGLE";
         default:
             return "EMPTY";
@@ -48,11 +47,11 @@ public:
     std::string draw(int x, int y) override {
         std::ostringstream oss;
         oss << "at (" << x << ", " << y << ")" << std::endl;
-        return oss.str();  // concatenate result string in the proccessCommand method later
+        return oss.str();  // 在processCommand中拼接字符串结果
     } 
 
 private:
-    // DO NOT record whether a shaped is created or not. Leave it to factory.
+    // 不记录isFirst，保持Shape职责单一；是否存在由工厂管理
     ShapeType _type;
 };
 
@@ -82,17 +81,17 @@ void processCommand(ShapeFactory& factory, const std::string& command) {
 
     ShapeType type;
     if (shapeTypeStr == "CIRCLE") {
-        type = CIRCLE;
+        type = ShapeType::CIRCLE;
     } else if (shapeTypeStr == "RECTANGLE") {
-        type = RECTANGLE;
+        type = ShapeType::RECTANGLE;
     } else if (shapeTypeStr == "TRIANGLE") {
-        type = TRIANGLE;
+        type = ShapeType::TRIANGLE;
     } else {
         std::cerr << "Invalid shape type: " << shapeTypeStr << std::endl;
         return;
     }
 
-    // concatenate result string.
+    // 拼接完整字符串
     std::ostringstream oss;
     oss << shapeTypeToString(type);
     auto result = factory.getShape(type);
