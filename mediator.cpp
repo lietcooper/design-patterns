@@ -30,6 +30,7 @@
 #include <memory>
 #include <unordered_map>
 #include <sstream>
+#include <stdexcept>
 
 
 class Colleague {
@@ -52,17 +53,22 @@ public:
 class User : public Colleague {
 private:
     std::string username_;
-    std::weak_ptr<Mediator> mediator_;
+    std::weak_ptr<Mediator> mediator_;  // weak pointer to solve circular dependency.
 
 public:
-    User(std::string& username, std::shared_ptr<Mediator> mediator) : username_(std::move(username)), mediator_(mediator) {}
+    User(std::string username, std::shared_ptr<Mediator> mediator) : username_(std::move(username)), mediator_(mediator) {}
 
     void notify(const std::string& message) override {
-        mediator_->forward(username_, message);
+        // upgrade weak pointer to shared pointer
+        if (auto mediator = mediator_.lock()) {
+            mediator->forward(username_, message);
+        } else {
+            std::cerr << "Chat room does not exist!" << std:: endl;
+        }    
     }
 
     void notified(const std::string& message) override {
-        std::cout << username_ << "received: " << message << std::endl;
+        std::cout << username_ << " received: " << message << std::endl;
     }
 
     std::string getName() override {
@@ -94,6 +100,7 @@ public:
 int main() {
     int N;
     std::cin >> N;
+    std::cin.ignore();
     std::string input;
     std::getline(std::cin, input);
     std::istringstream iss(input);
